@@ -32,7 +32,7 @@ const Key keymaps[][ROWS][COLS] PROGMEM = {
    Key_LCtrl, Key_Backspace, Key_LGUI, Key_LShift,
    Key_skip,
 
-   Key_skip,  Key_6, Key_7, Key_8,     Key_9,      Key_0,         Key_skip,
+   M(1),      Key_6, Key_7, Key_8,     Key_9,      Key_0,         Key_skip,
    Key_Enter, Key_Y, Key_U, Key_I,     Key_O,      Key_P,         Key_Equals,
               Key_H, Key_J, Key_K,     Key_L,      Key_Semicolon, Key_Quote,
    Key_skip,  Key_N, Key_M, Key_Comma, Key_Period, Key_Slash,     Key_Minus,
@@ -95,6 +95,77 @@ static void fadeOutChar (Key key) {
     AlphaSquare.color = { 0, 0, (uint8_t)min (i * 2, 255)};
     AlphaSquare.display (key);
   }
+}
+
+#define xCRGB(r, g, b) CRGB((uint8_t)(r), (uint8_t)(g), (uint8_t)(b))
+
+static void fadePeach(float step) {
+  // skirt
+  for (uint8_t c = 2; c <= 5; c++) {
+    LEDControl.led_set_crgb_at (3, c, xCRGB(250 * step, 123 * step, 226 * step));
+  }
+  LEDControl.led_set_crgb_at (2, 4, xCRGB(250 * step, 123 * step, 226 * step));
+  LEDControl.led_set_crgb_at (2, 3, xCRGB(209 * step, 39 * step, 165 * step));
+
+  // head
+  LEDControl.led_set_crgb_at (1, 3, xCRGB(225 * step, 186 * step, 149 * step));
+
+  // hair
+  LEDControl.led_set_crgb_at (1, 4, xCRGB(255 * step, 255 * step, 0));
+  LEDControl.led_set_crgb_at (0, 3, xCRGB(255 * step, 255 * step, 0));
+  LEDControl.led_set_crgb_at (0, 4, xCRGB(255 * step, 255 * step, 0));
+}
+
+static void drawPeach(void) {
+  for (uint8_t step = 0; step <= 100; step++) {
+    fadePeach((float)step / 100.0);
+    LEDControl.led_sync ();
+  }
+}
+
+static void hidePeach(void) {
+  for (uint8_t step = 100; step > 0; step--) {
+    fadePeach((float)step / 100.0);
+    LEDControl.led_sync ();
+  }
+  LEDControl.set_all_leds_to ({0, 0, 0});
+  LEDControl.led_sync ();
+}
+
+static void fadeFlower(float step) {
+  // middle
+  LEDControl.led_set_crgb_at (2, 3, xCRGB(255 * step, 255 * step, 255 * step));
+
+  // pinky
+  LEDControl.led_set_crgb_at (2, 2, xCRGB(250 * step, 123 * step, 226 * step));
+  LEDControl.led_set_crgb_at (2, 4, xCRGB(250 * step, 123 * step, 226 * step));
+  LEDControl.led_set_crgb_at (1, 3, xCRGB(250 * step, 123 * step, 226 * step));
+  LEDControl.led_set_crgb_at (3, 3, xCRGB(250 * step, 123 * step, 226 * step));
+
+  // red
+  LEDControl.led_set_crgb_at (0, 3, xCRGB(255 * step, 0, 0));
+  LEDControl.led_set_crgb_at (1, 2, xCRGB(255 * step, 0, 0));
+  LEDControl.led_set_crgb_at (1, 4, xCRGB(255 * step, 0, 0));
+  LEDControl.led_set_crgb_at (2, 1, xCRGB(255 * step, 0, 0));
+  LEDControl.led_set_crgb_at (2, 5, xCRGB(255 * step, 0, 0));
+  LEDControl.led_set_crgb_at (3, 2, xCRGB(255 * step, 0, 0));
+  LEDControl.led_set_crgb_at (3, 4, xCRGB(255 * step, 0, 0));
+}
+
+static void drawFlower(void) {
+  for (uint8_t step = 0; step <= 100; step++) {
+    fadeFlower((float)step / 100.0);
+    LEDControl.led_sync ();
+  }
+}
+
+static void hideFlower(void) {
+  for (uint8_t step = 100; step > 0; step--) {
+    fadeFlower((float)step / 100.0);
+    LEDControl.led_sync ();
+  }
+  LEDControl.set_all_leds_to ({0, 0, 0});
+  LEDControl.led_sync ();
 }
 
 const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
@@ -184,6 +255,58 @@ const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
     // [Transition]
     LEDControl.set_all_leds_to ({0, 0, 0});
     displayHeart (0x22);
+
+    // End Sequence
+    for (uint8_t i = 0; i < 4; i++) {
+      pulseHeart ();
+    }
+
+    for (uint8_t i = 0x88; i > 0x04; i -= 0x4) {
+      displayHeart (i);
+      delay (10);
+    }
+
+    LEDControl.set_all_leds_to ({0, 0, 0});
+  }
+
+  if (macroIndex == 1) {
+    LEDControl.set_all_leds_to ({0, 0, 0});
+    delay (100);
+
+    // Initial beat
+    for (uint8_t i = 0; i <= 0x88; i += 0x4) {
+      displayHeart (i);
+      delay (10);
+    }
+
+    // pulse
+    pulseHeart ();
+
+    // fade in peach
+    drawPeach ();
+
+    // pulse
+    for (uint8_t i = 0; i < 8; i++) {
+      pulseHeart ();
+    }
+    delay (500);
+
+    // fade out peach
+    hidePeach ();
+
+    // transition
+    pulseHeart();
+
+    // fade in flower
+    drawFlower();
+
+    // pulse
+    for (uint8_t i = 0; i < 8; i++) {
+      pulseHeart ();
+    }
+    delay (500);
+
+    hideFlower ();
 
     // End Sequence
     for (uint8_t i = 0; i < 4; i++) {
